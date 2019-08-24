@@ -7,16 +7,25 @@
 //
 
 import Foundation
-struct Weather: Decodable{
+
+struct Weather: Codable{
+    
+    struct WeatherInfoContainer: Codable{
+        var main: String
+        var description: String
+        var icon: String
+    }
     
     // City details
     var id:                     Int
     var cityName:               String
     
+    var weatherDetailsContainer: [WeatherInfoContainer]?
+    
     // Weather details
     var weatherName:            String
     var weatherDescription:     String
-    var weatherIconName:         String
+    var weatherIconName:        String
     
     // Temperature details
     var temperature:            Double
@@ -32,52 +41,79 @@ struct Weather: Decodable{
     // cloud details
     var clouds:                 Int
     
-    // Initialization from dictrionary
-    init(jsonData:[String: Any]) {
+    //Coding Keys
+    private enum CodingKeys: String, CodingKey {
         
-        self.id = jsonData["id"] as? Int ?? 0
-        self.cityName = jsonData["name"] as? String ?? ""
+        case id = "id"
+        case cityName = "name"
         
-        if let weatherDeatailsArray = jsonData["weather"] as? [[String:Any]],
-            !weatherDeatailsArray.isEmpty{
-            let weatherDeatails = weatherDeatailsArray[0]
-            self.weatherName = weatherDeatails["main"] as? String ?? ""
-            self.weatherDescription = weatherDeatails["description"] as? String ?? ""
-            self.weatherIconName = weatherDeatails["icon"] as? String ?? "defaultIcon.png"
-        }else{
-            self.weatherName = "Unknown"
-            self.weatherDescription = "Unknown"
-            self.weatherIconName = "Unknown"
-        }
-        
-        if let weatherConditionDetails = jsonData["main"] as? [String: Any]{
-            self.temperature = weatherConditionDetails["temp"] as? Double ?? 0.0
-            self.pressure = weatherConditionDetails["pressure"] as? Int ?? 0
-            self.humidity = weatherConditionDetails["humidity"] as? Int ?? 0
-            self.minTemp = weatherConditionDetails["temp_min"] as? Double ?? 0.0
-            self.maxTemp = weatherConditionDetails["temp_max"] as? Double ?? 0.0
-        }else{
-            self.temperature = 0.0
-            self.pressure = 0
-            self.humidity = 0
-            self.minTemp = 0.0
-            self.maxTemp = 0.0
-        }
-        
-        if let windDetails = jsonData["wind"] as? [String: Any]{
-            self.windSpeed = windDetails["speed"] as? Double ?? 0.0
-            self.windDeg = windDetails["deg"] as? Int ?? 0
-        }else{
-            self.windSpeed = 0.0
-            self.windDeg = 0
-        }
-        
-        if let cloudDetails = jsonData["clouds"] as? [String: Any]{
-            self.clouds = cloudDetails["all"] as? Int ?? 0
-        }else{
-            self.clouds = 0
-        }
-        
+        case weather = "weather"
+        case main = "main"
+        case wind = "wind"
+        case clouds = "clouds"
     }
     
+    private enum WeatherKeys: String, CodingKey{
+
+        case weatherName = "main"
+        case weatherDescription = "description"
+        case weatherIconName = "icon"
+    }
+
+    private enum WeatherMainKeys: String, CodingKey{
+
+        case temperature = "temp"
+        case pressure = "pressure"
+        case humidity = "humidity"
+        case minTemp = "temp_min"
+        case maxTemp = "temp_max"
+
+    }
+
+    private enum WindKeys: String, CodingKey{
+        case windSpeed = "speed"
+        case windDeg = "deg"
+
+    }
+
+    private enum CloudKeys: String, CodingKey{
+        case clouds = "all"
+    }
+
+    func encode(to encoder: Encoder) throws {
+        
+    }
+
+    
+    init(from decoder: Decoder) throws {
+        
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        self.id = try container.decode(Int.self, forKey: .id)
+        self.cityName = try container.decode(String.self, forKey: .cityName)
+        
+        let weatherInfoContainer = try container.decodeIfPresent([WeatherInfoContainer].self, forKey: .weather)
+    
+        self.weatherName = weatherInfoContainer?.first?.main ?? "Unknown"
+        self.weatherDescription = weatherInfoContainer?.first?.description ?? "Unknown"
+        self.weatherIconName = weatherInfoContainer?.first?.icon ?? "default_icon"
+        
+        let mainContainer = try container.nestedContainer(keyedBy: WeatherMainKeys.self, forKey: .main)
+
+        self.temperature = try mainContainer.decode(Double.self, forKey: .temperature)
+        self.pressure = try mainContainer.decode(Int.self, forKey: .pressure)
+        self.humidity = try mainContainer.decode(Int.self, forKey: .humidity)
+        self.minTemp = try mainContainer.decode(Double.self, forKey: .minTemp)
+        self.maxTemp = try mainContainer.decode(Double.self, forKey: .maxTemp)
+
+        let windContainer = try container.nestedContainer(keyedBy: WindKeys.self, forKey: .wind)
+
+        self.windSpeed = try windContainer.decode(Double.self, forKey: .windSpeed)
+        self.windDeg = try windContainer.decode(Int.self, forKey: .windDeg)
+
+        let cloudContainer = try container.nestedContainer(keyedBy: CloudKeys.self, forKey: .clouds)
+
+        self.clouds = try cloudContainer.decode(Int.self, forKey: .clouds)
+
+    }
 }

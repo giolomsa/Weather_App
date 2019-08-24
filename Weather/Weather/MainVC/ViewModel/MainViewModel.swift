@@ -8,12 +8,11 @@
 
 import Foundation
 import UIKit
-import CoreLocation
 
 class MainViewModel{
     
-    // Create Notification for weather array change
-    static let currentLocationweatherChangeNotification = Notification.Name(rawValue: "gio.lomsa.CurrentLocationWeatherArrayChange")
+    // Create Notification for weather model change
+    static let currentLocationweatherChangeNotification = Notification.Name(rawValue: "gio.lomsa.CurrentLocationWeatherChange")
     static let weatherArrayChangeNotification = Notification.Name(rawValue: "gio.lomsa.WeatherArrayChange")
     //
     
@@ -35,7 +34,7 @@ class MainViewModel{
 
     
     // TODO:- Make cities editable for user
-    private let cities = ["London":"2643743", "Tokyo":"1850147"]
+    private let cities = ["London":"2172797", "Tokyo":"1850147"]
     
     func getWeatherFromServer(){
         DispatchQueue.global(qos: .background).async {
@@ -104,7 +103,7 @@ class MainViewModel{
                     completion(image)
                 case .failure(let error):
                     print(error)
-                    // Show error alert
+                    //TODO:- Show error alert
                     return
                 }
             }
@@ -112,18 +111,3 @@ class MainViewModel{
     }
 }
 
-extension Double{
-    var temperatureToString: String{
-        return String(Int(self)) + "º"
-    }
-    
-    var weatherSpeedToString: String{
-        return "Speed: " + String(self) + "mps"
-    }
-}
-
-extension Int{
-    var degreeToString: String{
-        return "Degree: " + String(self) + "º"
-    }
-}

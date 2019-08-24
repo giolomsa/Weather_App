@@ -29,13 +29,10 @@ class APIClient{
     
     func getWeatherByCityId(city id: String, completion: @escaping (Result<Weather>)-> Void){
         
-        self.httpLayer.request(at: .weatherByCityId(id), isIcon: false) { (data, response, error) in
-            
+        self.httpLayer.request(at: .weatherByCityId(id), isIcon: false) { (data, response, error) in        
             guard let httpResponse = response as? HTTPURLResponse,
                 httpResponse.statusCode.isSuccessHTTPCode,
-                let data = data,
-                let jsonObject = try? JSONSerialization.jsonObject(with: data),
-                let weatherDictionary = jsonObject as? [String: Any]
+                let data = data
                 else {
                     
                     if let error = error{
@@ -43,8 +40,15 @@ class APIClient{
                     }
                     return
                 }
-            let weather = Weather(jsonData: weatherDictionary)
-            completion(.success(weather))
+            do{
+                let decoder = JSONDecoder()
+                let weather = try decoder.decode(Weather.self, from: data)
+                completion(.success(weather))
+            }catch let error{
+                print(error.localizedDescription)
+            }
+            
+            
         }
     }
     
@@ -54,17 +58,20 @@ class APIClient{
             
             guard let httpResponse = response as? HTTPURLResponse,
                 httpResponse.statusCode.isSuccessHTTPCode,
-                let data = data,
-                let jsonObject = try? JSONSerialization.jsonObject(with: data),
-                let weatherDictionary = jsonObject as? [String: Any]
+                let data = data
                 else {
                     if let error = error{
                         completion(.failure(error as NSError))
                     }
                     return
             }
-            let weather = Weather(jsonData: weatherDictionary)
-            completion(.success(weather))
+            do{
+                let decoder = JSONDecoder()
+                let weather = try decoder.decode(Weather.self, from: data)
+                completion(.success(weather))
+            }catch let error{
+                print(error.localizedDescription)
+            }
         }
     }
     
@@ -85,11 +92,4 @@ class APIClient{
         }
     }
     
-}
-
-
-extension Int {
-    public var isSuccessHTTPCode: Bool {
-        return 200 <= self && self < 300
-    }
 }

@@ -20,6 +20,8 @@ class MainVC: UIViewController {
     @IBOutlet weak var currentCityBlackBgView:          UIView!
     @IBOutlet weak var currentCityDetailesButton:       UIButton!
     @IBOutlet weak var weatherTableView:                UITableView!
+    @IBOutlet weak var metricsButton: UIButton!
+    
     // Current City View
     @IBOutlet weak var currentCityTempLabel:            UILabel!
     @IBOutlet weak var currentCityNameLabel:            UILabel!
@@ -31,12 +33,14 @@ class MainVC: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        custumizeUI()
-        updateActivityIndicator(on: true)
         // Add Observer
         NotificationCenter.default.addObserver(self, selector: #selector(updateCurrentLocationWeather), name: MainViewModel.currentLocationweatherChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(updateWeatherTableView), name: MainViewModel.weatherArrayChangeNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(updateCurrentWeatherInViewModel), name: CoreLocationManager.locationManagerAuthorizarionStatus, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateCurrentWeatherFromViewModel), name: CoreLocationManager.locationManagerAuthorizarionStatus, object: nil)
+        
+        //
+        custumizeUI()
+        updateActivityIndicator(on: true)
         
         // Manage delegate, dataSource
         weatherTableView.dataSource     = self
@@ -45,13 +49,27 @@ class MainVC: UIViewController {
     }        
     
     // MARK:- IBActions
-    
     @IBAction func currentCityDetailesButtonTapped(_ sender: UIButton){
-        self.selectedWeather = viewModel.currentCityWeather
-        performSegue(withIdentifier: "WeatherDetailsSegue", sender: self)
+        if let selectedWeather = viewModel.currentCityWeather{
+            self.selectedWeather = selectedWeather
+            performSegue(withIdentifier: "WeatherDetailsSegue", sender: self)
+        }else{
+            // Show Error alert
+        }
+    }
+    
+    @IBAction func addCityButtonTapped(_ sender: UIButton) {
+        if let addCityVC = storyboard?.instantiateViewController(withIdentifier: "AddCityVC"){
+            navigationController?.present(addCityVC, animated: true, completion: nil)
+        }
         
     }
+    @IBAction func metricButtonTapped(_ sender: UIButton) {
+        
+    }
+    
 
+    // Prepare for segue
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let destination = segue.destination as? WeatherDetailsVC{
             destination.selectedWeather = self.selectedWeather
@@ -63,16 +81,31 @@ class MainVC: UIViewController {
     private func custumizeUI(){
         self.activityIndicatorBackground.layer.cornerRadius     = self.activityIndicatorBackground.frame.width/4
         self.currentCityBlackBgView.layer.cornerRadius          = 15
+        metricsButton.layer.cornerRadius                        = 15
+        metricsButton.layer.borderColor                         = UIColor.white.cgColor
+//        var metricButtontitle = NSAttributedString(attributedString: "C/F")
+        
+        let celsiusString = "C"
+        let farengString = "F"
+        let myAttribute = [ NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 15) ]
+        let celsiusAttributedString = NSAttributedString(string: celsiusString, attributes: myAttribute)
+        
+        let farengAttributedString = NSAttributedString(string: celsiusString, attributes: myAttribute)
+        
+        // set attributed text on a UILabel
+        let buttonTitle = "\(celsiusAttributedString)  \(farengString)"
+        metricsButton.setAttributedTitle(celsiusAttributedString, for: .normal)
+
     }
     
-    @objc func updateCurrentWeatherInViewModel(){
+    @objc func updateCurrentWeatherFromViewModel(){
         viewModel.getWeatherByGeoLocation()
     }
     
     @objc private func updateCurrentLocationWeather(){
         DispatchQueue.main.async {
             self.updateCurrentCityView()
-            self.weatherTableView.reloadData()
+//            self.weatherTableView.reloadData()
             
 
         }
@@ -96,6 +129,7 @@ class MainVC: UIViewController {
         }
     }
     
+    // Manage activity Indicator
     private func updateActivityIndicator(on: Bool){
         if on{
             self.activityIndiator.startAnimating()
@@ -108,11 +142,15 @@ class MainVC: UIViewController {
         }
     }
     
+    private func changeMetricsUI(){
+        
+    }
+    
    @objc private func updateWeatherTableView(){
-    print("From Observer")
-    DispatchQueue.main.async {
-        self.weatherTableView.reloadData()
+        DispatchQueue.main.async {
+            self.weatherTableView.reloadData()
+        }
     }
-    }
+    
 }
 

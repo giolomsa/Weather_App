@@ -12,7 +12,7 @@ class WeatherDetailsVC: UIViewController {
 
     var selectedWeather: Weather?
     let viewModel = MainViewModel()
-    
+    //
     @IBOutlet weak var activityIndicatorBackgroundView: UIView!
     @IBOutlet weak var activityIndicator:               UIActivityIndicatorView!
     @IBOutlet weak var selectedWeatherBGView:           UIView!
@@ -71,8 +71,7 @@ class WeatherDetailsVC: UIViewController {
         self.windDetailsBgView.layer.cornerRadius       = 15
     }
     
-    @objc func navigateBacktoMainScreen(){
-       
+    @objc func navigateBacktoMainScreen(){       
        print("navigate")
         dismiss(animated: true, completion: nil)
     }

@@ -8,7 +8,6 @@
 
 import Foundation
 import UIKit
-import MapKit
 import CoreLocation
 
 class CoreLocationManager: UIViewController{
@@ -28,6 +27,7 @@ class CoreLocationManager: UIViewController{
             }else{
                 completion(nil,nil)
             }
+            locationManager.stopUpdatingLocation()
         }
     }
 }
